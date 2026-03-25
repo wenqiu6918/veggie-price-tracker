@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>菜价本</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg: #0d1b2a;
+    --surface: #0f2438;
+    --card: #1a3a52;
+    --card2: #234563;
+    --accent: #4a9eff;
+    --accent2: #7bb8ff;
+    --accent3: #2b7dd9;
+    --text: #e0f2ff;
+    --text2: #8fb3d9;
+    --text3: #5a7a9e;
+    --border: #2a4a6a;
+    --danger: #ff6b6b;
+    --warn: #ffa94d;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent3), var(--accent));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 2px;
+  }
+  .header-stats {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .stat-item {
+    text-align: right;
+  }
+  .stat-num {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .import-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .import-btn:active { background: var(--accent3); color: #fff; }
+
+  /* ── Search & Filter ── */
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .search-input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-input::placeholder { color: var(--text3); }
+  .search-input:focus { border-color: var(--accent3); }
+  .filter-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    color: var(--text2);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .filter-btn.active { background: var(--accent3); border-color: var(--accent3); color: #fff; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 12px 20px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 113px;
+    z-index: 99;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0 10px;
+    font-size: 13px;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+    font-weight: 500;
+  }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── Content ── */
+  .content {
+    padding: 16px 20px 100px;
+  }
+
+  /* ── Record List ── */
+  .date-group { margin-bottom: 20px; }
+  .date-label {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  .record-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .record-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent3);
+    border-radius: 3px 0 0 3px;
+  }
+  .record-card:active { transform: scale(0.98); background: var(--card2); }
+
+  .record-photo {
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--card2);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    border: 1px solid var(--border);
+  }
+  .record-photo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .record-info { flex: 1; min-width: 0; }
+  .record-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .record-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .meta-tag {
+    font-size: 11px;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .record-price {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .price-main {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .price-unit {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .price-diff {
+    font-size: 11px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .price-diff.up { color: var(--danger); }
+  .price-diff.down { color: var(--accent); }
+
+  /* ── Compare View ── */
+  .compare-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .compare-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .compare-icon {
+    width: 40px; height: 40px;
+    background: var(--card2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .compare-name {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .compare-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text3);
+    background: var(--card2);
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .compare-rows { display: flex; flex-direction: column; gap: 6px; }
+  .compare-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--card2);
+    border-radius: var(--radius-sm);
+  }
+  .compare-row.best { border: 1px solid var(--accent3); }
+  .best-badge {
+    font-size: 10px;
+    background: var(--accent3);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .compare-location { flex: 1; font-size: 13px; color: var(--text2); }
+  .compare-date { font-size: 11px; color: var(--text3); }
+  .compare-price-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* ── FAB ── */
+  .fab {
+    position: fixed;
+    bottom: 28px;
+    right: 50%;
+    transform: translateX(50%);
+    max-width: 390px;
+    width: calc(100% - 40px);
+    background: linear-gradient(135deg, var(--accent3), var(--accent));
+    color: #0f1a0f;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 8px 32px rgba(126,203,95,0.35);
+    transition: all .2s;
+    z-index: 200;
+    letter-spacing: 1px;
+  }
+  .fab:active { transform: translateX(50%) scale(0.97); }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 300;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 0 0 40px;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal {
+    transform: translateY(0);
+  }
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    padding: 16px 20px 0;
+    color: var(--text);
+  }
+
+  /* ── Form ── */
+  .form { padding: 16px 20px 0; }
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus { border-color: var(--accent3); }
+  .form-input::placeholder { color: var(--text3); }
+
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; }
+
+  /* Photo upload */
+  .photo-upload {
+    width: 100%;
+    height: 120px;
+    background: var(--card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .photo-upload:active { border-color: var(--accent3); background: var(--card2); }
+  .photo-upload-icon { font-size: 28px; }
+  .photo-upload-text { font-size: 13px; color: var(--text3); }
+  .photo-upload-sub { font-size: 11px; color: var(--text3); opacity: 0.6; }
+  .photo-preview {
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
+  .photo-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #fff;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .photo-upload:hover .photo-preview-overlay { opacity: 1; }
+
+  /* OCR result */
+  .ocr-result {
+    background: var(--card2);
+    border: 1px solid var(--accent3);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-top: 8px;
+    display: none;
+  }
+  .ocr-result.show { display: block; }
+  .ocr-result-title {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ocr-items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ocr-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .ocr-item:active { background: var(--accent3); color: #fff; border-color: var(--accent3); }
+
+  /* Submit btn */
+  .submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent3), var(--accent));
+    color: #0f1a0f;
+    border: none;
+    border-radius: var(--radius);
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all .2s;
+    letter-spacing: 1px;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+
+  /* ── Detail Modal ── */
+  .detail-photo {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: var(--card2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+  }
+  .detail-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .detail-body { padding: 20px; }
+  .detail-name {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .detail-price-big {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .detail-price-big span { font-size: 16px; color: var(--text3); font-weight: 400; }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .detail-item {
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+  .detail-item-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .detail-item-val { font-size: 14px; font-weight: 500; color: var(--text); }
+  .detail-actions { display: flex; gap: 10px; }
+  .detail-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text2);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .2s;
+    font-weight: 500;
+  }
+  .detail-btn.danger { color: var(--danger); border-color: var(--danger); }
+  .detail-btn:active { transform: scale(0.97); }
+
+  /* ── Empty State ── */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 56px; margin-bottom: 16px; }
+  .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text2); }
+  .empty-sub { font-size: 13px; line-height: 1.6; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--accent3);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    transition: transform .3s cubic-bezier(.32,.72,0,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Loading spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .record-card { animation: fadeIn .3s ease both; }
+
+  input[type="file"] { display: none; }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+
+  /* Import Styles */
+  .import-method-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text2);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .import-method-btn.active {
+    background: var(--accent3);
+    border-color: var(--accent3);
+    color: #fff;
+  }
+
+  textarea.form-input {
+    font-family: 'Monaco', 'Menlo', monospace;
+    line-height: 1.5;
+  }
+
+  .preview-item {
+    background: var(--card2);
+    border-left: 3px solid var(--accent3);
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .preview-item-name {
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .preview-item-meta {
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .preview-error {
+    background: rgba(255,107,107,0.1);
+    border-left-color: var(--danger);
+    color: var(--danger);
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">🥬</div>
+      <div class="logo-text">菜价本</div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-item">
+        <div class="stat-num" id="totalCount">0</div>
+        <div class="stat-label">条记录</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="vegCount">0</div>
+        <div class="stat-label">种蔬菜</div>
+      </div>
+      <button class="import-btn" onclick="openImportModal()">📥 导入</button>
+    </div>
+  </div>
+  <div class="search-bar">
+    <input class="search-input" type="text" placeholder="搜索蔬菜名称或地点…" id="searchInput" oninput="renderAll()">
+    <button class="filter-btn" id="sortBtn" onclick="toggleSort()" title="排序">⇅</button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('list', this)">📋 记录</div>
+  <div class="tab" onclick="switchTab('compare', this)">📊 比价</div>
+</div>
+
+<!-- Content -->
+<div class="content" id="mainContent"></div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddModal()">
+  <span>＋</span> 记录菜价
+</button>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal" onclick="handleOverlayClick(event, 'addModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📝 新增菜价记录</div>
+    <div class="form">
+      <!-- Photo -->
+      <div class="form-group">
+        <label class="form-label">📷 拍照识别（可选）</label>
+        <div class="photo-upload" onclick="triggerPhoto()" id="photoUploadArea">
+          <div class="photo-upload-icon">📸</div>
+          <div class="photo-upload-text">点击拍照或选择图片</div>
+          <div class="photo-upload-sub">支持自动识别菜名和价格</div>
+          <div class="photo-preview-overlay">重新选择</div>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="handlePhoto(event)">
+        <div class="ocr-result" id="ocrResult">
+          <div class="ocr-result-title">✨ 识别结果，点击填入</div>
+          <div class="ocr-items" id="ocrItems"></div>
+        </div>
+      </div>
+
+      <!-- Name -->
+      <div class="form-group">
+        <label class="form-label">🥦 蔬菜名称 *</label>
+        <input class="form-input" type="text" id="vegName" placeholder="如：西红柿、土豆、白菜…" list="vegSuggestions">
+        <datalist id="vegSuggestions"></datalist>
+      </div>
+
+      <!-- Price & Unit -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">💰 价格 *</label>
+          <input class="form-input" type="number" id="vegPrice" placeholder="0.00" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">单位</label>
+          <select class="form-input" id="vegUnit">
+            <option value="斤">元/斤</option>
+            <option value="kg">元/kg</option>
+            <option value="个">元/个</option>
+            <option value="把">元/把</option>
+            <option value="棵">元/棵</option>
+            <option value="袋">元/袋</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="form-group">
+        <label class="form-label">📍 购买地点 *</label>
+        <input class="form-input" type="text" id="vegLocation" placeholder="如：家乐福、菜市场、盒马…" list="locationSuggestions">
+        <datalist id="locationSuggestions"></datalist>
+      </div>
+
+      <!-- Date -->
+      <div class="form-group">
+        <label class="form-label">📅 日期</label>
+        <input class="form-input" type="date" id="vegDate">
+      </div>
+
+      <!-- Note -->
+      <div class="form-group">
+        <label class="form-label">📝 备注（可选）</label>
+        <input class="form-input" type="text" id="vegNote" placeholder="如：新鲜、打折、有机…">
+      </div>
+
+      <button class="submit-btn" onclick="saveRecord()">✅ 保存记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal" onclick="handleOverlayClick(event, 'detailModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal" onclick="handleOverlayClick(event, 'importModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📥 批量导入菜价</div>
+    <div class="form">
+      <div class="form-group">
+        <label class="form-label">📋 导入方式</label>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="import-method-btn active" onclick="switchImportMethod('text', this)">文本粘贴</button>
+          <button class="import-method-btn" onclick="switchImportMethod('csv', this)">CSV文件</button>
+        </div>
+      </div>
+
+      <!-- Text Import -->
+      <div id="textImportArea">
+        <div class="form-group">
+          <label class="form-label">粘贴菜价数据（每行一条）</label>
+          <textarea class="form-input" id="importText" placeholder="格式示例：&#10;菜名 价格 地点&#10;牛腩 28 菜市场&#10;千层肚 28 家乐福&#10;&#10;或者：菜名 价格 地点 日期 备注&#10;西红柿 3.5 菜市场 2026-03-25 新鲜" style="height:140px;resize:vertical;font-family:monospace;font-size:13px"></textarea>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">
+            支持格式：<br>
+            • 简单：菜名 价格 地点<br>
+            • 完整：菜名 价格 地点 日期 备注
+          </div>
+        </div>
+      </div>
+
+      <!-- CSV Import -->
+      <div id="csvImportArea" style="display:none">
+        <div class="form-group">
+          <label class="form-label">选择CSV文件</label>
+          <div class="photo-upload" onclick="triggerCSV()" style="height:100px">
+            <div class="photo-upload-icon">📄</div>
+            <div class="photo-upload-text">点击选择CSV文件</div>
+            <div class="photo-upload-sub">或拖拽文件到此处</div>
+          </div>
+          <input type="file" id="csvInput" accept=".csv" onchange="handleCSV(event)">
+          <div style="font-size:11px;color:var(--text3);margin-top:8px">
+            CSV格式：name,price,location,date,note<br>
+            示例：西红柿,3.5,菜市场,2026-03-25,新鲜
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="form-group" id="previewArea" style="display:none">
+        <label class="form-label">✅ 预览导入数据（共 <span id="previewCount">0</span> 条）</label>
+        <div id="previewList" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px"></div>
+      </div>
+
+      <button class="submit-btn" onclick="parseImportData()">🔍 预览数据</button>
+      <button class="submit-btn" id="confirmImportBtn" style="display:none;background:linear-gradient(135deg,var(--accent3),var(--accent))" onclick="confirmImport()">✅ 确认导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──
+let records = JSON.parse(localStorage.getItem('vegRecords') || '[]');
+let currentTab = 'list';
+let sortDesc = true;
+let editingId = null;
+
+// ── Import ──
+let importMethod = 'text';
+let pendingImportData = [];
+
+function openImportModal() {
+  pendingImportData = [];
+  document.getElementById('importText').value = '';
+  document.getElementById('csvInput').value = '';
+  document.getElementById('previewArea').style.display = 'none';
+  document.getElementById('confirmImportBtn').style.display = 'none';
+  openModal('importModal');
+}
+
+function switchImportMethod(method, btn) {
+  importMethod = method;
+  document.querySelectorAll('.import-method-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('textImportArea').style.display = method === 'text' ? 'block' : 'none';
+  document.getElementById('csvImportArea').style.display = method === 'csv' ? 'block' : 'none';
+}
+
+function triggerCSV() {
+  document.getElementById('csvInput').click();
+}
+
+function handleCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result;
+    document.getElementById('importText').value = text;
+    showToast('✅ CSV已加载');
+  };
+  reader.readAsText(file);
+}
+
+function parseImportData() {
+  pendingImportData = [];
+  const text = document.getElementById('importText').value.trim();
+  if (!text) {
+    showToast('⚠️ 请输入数据');
+    return;
+  }
+
+  const lines = text.split('
+').filter(l => l.trim());
+  const today = new Date().toISOString().split('T')[0];
+
+  lines.forEach((line, idx) => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length < 3) {
+      pendingImportData.push({
+        error: true,
+        text: line,
+        msg: '格式错误：需要至少3个字段'
+      });
+      return;
+    }
+
+    const [name, price, location, ...rest] = parts;
+    const date = rest[0] || today;
+    const note = rest.slice(1).join(' ') || '';
+
+    // Validate
+    if (isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+      pendingImportData.push({
+        error: true,
+        text: line,
+        msg: '价格无效'
+      });
+      return;
+    }
+
+    pendingImportData.push({
+      error: false,
+      name,
+      price: parseFloat(price).toFixed(1),
+      location,
+      date,
+      note,
+      unit: '斤'
+    });
+  });
+
+  // Show preview
+  const previewList = document.getElementById('previewList');
+  const validCount = pendingImportData.filter(d => !d.error).length;
+  const errorCount = pendingImportData.filter(d => d.error).length;
+
+  previewList.innerHTML = pendingImportData.map(d => {
+    if (d.error) {
+      return `<div class="preview-item preview-error">❌ ${d.text}<br><span style="font-size:10px">${d.msg}</span></div>`;
+    }
+    return `<div class="preview-item">
+      <div class="preview-item-name">${d.name}</div>
+      <div class="preview-item-meta">¥${d.price}/${d.unit} @ ${d.location} (${d.date})${d.note ? ' · ' + d.note : ''}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('previewCount').textContent = validCount;
+  document.getElementById('previewArea').style.display = 'block';
+  document.getElementById('confirmImportBtn').style.display = 'block';
+
+  if (validCount > 0) {
+    showToast(`✅ 预览完成：${validCount}条有效${errorCount > 0 ? `，${errorCount}条错误` : ''}`);
+  } else {
+    showToast('⚠️ 没有有效数据');
+  }
+}
+
+function confirmImport() {
+  const validData = pendingImportData.filter(d => !d.error);
+  if (!validData.length) {
+    showToast('⚠️ 没有有效数据可导入');
+    return;
+  }
+
+  validData.forEach(d => {
+    const record = {
+      id: Date.now().toString() + Math.random(),
+      name: d.name,
+      price: d.price,
+      location: d.location,
+      date: d.date,
+      unit: d.unit,
+      note: d.note,
+      photo: null,
+      createdAt: new Date().toISOString()
+    };
+    records.unshift(record);
+  });
+
+  localStorage.setItem('vegRecords', JSON.stringify(records));
+  updateSuggestions();
+  renderAll();
+  closeModal('importModal');
+  showToast(`✅ 已导入 ${validData.length} 条记录`);
+}
+
+// ── Init ──
+function init() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('vegDate').value = today;
+  renderAll();
+  updateSuggestions();
+}
+
+function updateStats() {
+  document.getElementById('totalCount').textContent = records.length;
+  const names = new Set(records.map(r => r.name));
+  document.getElementById('vegCount').textContent = names.size;
+}
+
+// ── Render ──
+function renderAll() {
+  updateStats();
+  if (currentTab === 'list') renderList();
+  else renderCompare();
+}
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  let list = [...records];
+  if (q) list = list.filter(r =>
+    r.name.toLowerCase().includes(q) ||
+    r.location.toLowerCase().includes(q) ||
+    (r.note || '').toLowerCase().includes(q)
+  );
+  list.sort((a, b) => sortDesc
+    ? new Date(b.date) - new Date(a.date)
+    : new Date(a.date) - new Date(b.date)
+  );
+  return list;
+}
+
+function renderList() {
+  const list = getFiltered();
+  const el = document.getElementById('mainContent');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">
+      <div class="empty-icon">🛒</div>
+      <div class="empty-title">还没有记录</div>
+      <div class="empty-sub">点击下方按钮<br>开始记录菜价吧！</div>
+    </div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  list.forEach(r => {
+    if (!groups[r.date]) groups[r.date] = [];
+    groups[r.date].push(r);
+  });
+
+  let html = '';
+  Object.keys(groups).sort((a,b) => sortDesc ? b.localeCompare(a) : a.localeCompare(b)).forEach(date => {
+    const label = formatDateLabel(date);
+    html += `<div class="date-group"><div class="date-label">${label}</div>`;
+    groups[date].forEach((r, i) => {
+      const diff = getPriceDiff(r);
+      const diffHtml = diff ? `<div class="price-diff ${diff.dir}">${diff.text}</div>` : '';
+      const photoHtml = r.photo
+        ? `<div class="record-photo"><img src="${r.photo}" alt="${r.name}"></div>`
+        : `<div class="record-photo">${getVegEmoji(r.name)}</div>`;
+      html += `<div class="record-card" style="animation-delay:${i*0.05}s" onclick="openDetail('${r.id}')">
+        ${photoHtml}
+        <div class="record-info">
+          <div class="record-name">${r.name}</div>
+          <div class="record-meta">
+            <span class="meta-tag">📍 ${r.location}</span>
+            ${r.note ? `<span class="meta-tag">· ${r.note}</span>` : ''}
+          </div>
+        </div>
+        <div class="record-price">
+          <div class="price-main">¥${parseFloat(r.price).toFixed(1)}</div>
+          <div class="price-unit">元/${r.unit}</div>
+          ${diffHtml}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderCompare() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const el = document.getElementById('mainContent');
+
+  // Group by name
+  const groups = {};
+  records.forEach(r => {
+    if (q && !r.name.toLowerCase().includes(q) && !r.location.toLowerCase().includes(q)) return;
+    if (!groups[r.name]) groups[r.name] = [];
+    groups[r.name].push(r);
+  });
+
+  const names = Object.keys(groups);
+  if (!names.length) {
+    el.innerHTML = `<div class="empty">
+      <div class="empty-icon">📊</div>
+      <div class="empty-title">暂无比价数据</div>
+      <div class="empty-sub">记录多个地点的同种蔬菜<br>即可自动比价</div>
+    </div>`;
+    return;
+  }
+
+  // Sort by most records
+  names.sort((a,b) => groups[b].length - groups[a].length);
+
+  let html = '';
+  names.forEach(name => {
+    const items = groups[name].sort((a,b) => parseFloat(a.price) - parseFloat(b.price));
+    const minPrice = parseFloat(items[0].price);
+    const maxPrice = parseFloat(items[items.length-1].price);
+    const savings = maxPrice - minPrice;
+
+    html += `<div class="compare-card">
+      <div class="compare-header">
+        <div class="compare-icon">${getVegEmoji(name)}</div>
+        <div>
+          <div class="compare-name">${name}</div>
+          ${savings > 0 ? `<div style="font-size:11px;color:var(--accent);margin-top:2px">最多省 ¥${savings.toFixed(1)}/${items[0].unit}</div>` : ''}
+        </div>
+        <div class="compare-count">${items.length} 条</div>
+      </div>
+      <div class="compare-rows">`;
+
+    items.forEach((item, i) => {
+      const isBest = i === 0;
+      html += `<div class="compare-row ${isBest ? 'best' : ''}">
+        ${isBest ? '<span class="best-badge">最低价</span>' : ''}
+        <span class="compare-location">📍 ${item.location}</span>
+        <span class="compare-date">${formatDateShort(item.date)}</span>
+        <span class="compare-price-val">¥${parseFloat(item.price).toFixed(1)}</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── Helpers ──
+function formatDateLabel(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+  if (d.getTime() === today.getTime()) return '今天';
+  if (d.getTime() === yesterday.getTime()) return '昨天';
+  return `${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function getPriceDiff(record) {
+  const same = records.filter(r => r.name === record.name && r.id !== record.id);
+  if (!same.length) return null;
+  const sorted = same.sort((a,b) => new Date(b.date) - new Date(a.date));
+  const prev = parseFloat(sorted[0].price);
+  const curr = parseFloat(record.price);
+  const diff = curr - prev;
+  if (Math.abs(diff) < 0.01) return null;
+  return {
+    dir: diff > 0 ? 'up' : 'down',
+    text: diff > 0 ? `↑ ${diff.toFixed(1)}` : `↓ ${Math.abs(diff).toFixed(1)}`
+  };
+}
+
+function getVegEmoji(name) {
+  const map = {
+    '西红柿': '🍅', '番茄': '🍅', '土豆': '🥔', '马铃薯': '🥔',
+    '白菜': '🥬', '大白菜': '🥬', '菠菜': '🥬', '生菜': '🥬',
+    '黄瓜': '🥒', '茄子': '🍆', '辣椒': '🌶️', '青椒': '🫑',
+    '胡萝卜': '🥕', '萝卜': '🥕', '玉米': '🌽', '南瓜': '🎃',
+    '洋葱': '🧅', '大蒜': '🧄', '姜': '🫚', '葱': '🌿',
+    '豆腐': '⬜', '蘑菇': '🍄', '香菇': '🍄', '木耳': '🍄',
+    '苹果': '🍎', '橙子': '🍊', '香蕉': '🍌', '葡萄': '🍇',
+    '猪肉': '🥩', '牛肉': '🥩', '鸡肉': '🍗', '鱼': '🐟',
+    '鸡蛋': '🥚', '豆角': '🫘', '芹菜': '🌿', '韭菜': '🌿',
+  };
+  for (const [k, v] of Object.entries(map)) {
+    if (name.includes(k)) return v;
+  }
+  return '🥦';
+}
+
+function updateSuggestions() {
+  const names = [...new Set(records.map(r => r.name))];
+  const locs = [...new Set(records.map(r => r.location))];
+  document.getElementById('vegSuggestions').innerHTML = names.map(n => `<option value="${n}">`).join('');
+  document.getElementById('locationSuggestions').innerHTML = locs.map(l => `<option value="${l}">`).join('');
+}
+
+// ── Photo & OCR ──
+function triggerPhoto() {
+  document.getElementById('photoInput').click();
+}
+
+function handlePhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    // Show preview
+    const area = document.getElementById('photoUploadArea');
+    let img = area.querySelector('img.photo-preview');
+    if (!img) {
+      img = document.createElement('img');
+      img.className = 'photo-preview';
+      area.appendChild(img);
+    }
+    img.src = dataUrl;
+    area.querySelector('.photo-upload-icon').style.display = 'none';
+    area.querySelector('.photo-upload-text').style.display = 'none';
+    area.querySelector('.photo-upload-sub').style.display = 'none';
+
+    // Store for saving
+    area.dataset.photo = dataUrl;
+
+    // Simulate OCR
+    simulateOCR(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+function simulateOCR(dataUrl) {
+  // Simulate OCR recognition with common vegetables
+  const ocrResult = document.getElementById('ocrResult');
+  const ocrItems = document.getElementById('ocrItems');
+
+  // Show loading
+  ocrResult.classList.add('show');
+  ocrItems.innerHTML = '<span style="color:var(--text3);font-size:12px"><span class="spinner"></span>识别中…</span>';
+
+  setTimeout(() => {
+    // Simulate detected items (in real app, use OCR API)
+    const suggestions = [
+      { type: 'name', value: '西红柿', label: '🍅 西红柿' },
+      { type: 'name', value: '土豆', label: '🥔 土豆' },
+      { type: 'price', value: '3.5', label: '¥3.5' },
+      { type: 'price', value: '2.8', label: '¥2.8' },
+      { type: 'price', value: '5.0', label: '¥5.0' },
+    ];
+
+    // Pick 2-3 random suggestions
+    const picked = suggestions.sort(() => Math.random() - 0.5).slice(0, 3);
+
+    ocrItems.innerHTML = picked.map(s =>
+      `<span class="ocr-item" onclick="applyOCR('${s.type}','${s.value}')">${s.label}</span>`
+    ).join('');
+  }, 1200);
+}
+
+function applyOCR(type, value) {
+  if (type === 'name') {
+    document.getElementById('vegName').value = value;
+  } else if (type === 'price') {
+    document.getElementById('vegPrice').value = value;
+  }
+  showToast('✅ 已填入');
+}
+
+// ── CRUD ──
+function saveRecord() {
+  const name = document.getElementById('vegName').value.trim();
+  const price = document.getElementById('vegPrice').value.trim();
+  const location = document.getElementById('vegLocation').value.trim();
+  const date = document.getElementById('vegDate').value;
+  const unit = document.getElementById('vegUnit').value;
+  const note = document.getElementById('vegNote').value.trim();
+  const photo = document.getElementById('photoUploadArea').dataset.photo || null;
+
+  if (!name) { showToast('⚠️ 请填写蔬菜名称'); return; }
+  if (!price || isNaN(price) || parseFloat(price) <= 0) { showToast('⚠️ 请填写有效价格'); return; }
+  if (!location) { showToast('⚠️ 请填写购买地点'); return; }
+
+  if (editingId) {
+    const idx = records.findIndex(r => r.id === editingId);
+    if (idx !== -1) {
+      records[idx] = { ...records[idx], name, price, location, date, unit, note, photo };
+    }
+    editingId = null;
+    showToast('✅ 记录已更新');
+  } else {
+    const record = {
+      id: Date.now().toString(),
+      name, price, location, date, unit, note, photo,
+      createdAt: new Date().toISOString()
+    };
+    records.unshift(record);
+    showToast('✅ 记录已保存');
+  }
+
+  localStorage.setItem('vegRecords', JSON.stringify(records));
+  closeModal('addModal');
+  resetForm();
+  updateSuggestions();
+  renderAll();
+}
+
+function deleteRecord(id) {
+  if (!confirm('确定删除这条记录？')) return;
+  records = records.filter(r => r.id !== id);
+  localStorage.setItem('vegRecords', JSON.stringify(records));
+  closeModal('detailModal');
+  renderAll();
+  showToast('🗑️ 已删除');
+}
+
+// ── Detail ──
+function openDetail(id) {
+  const r = records.find(r => r.id === id);
+  if (!r) return;
+
+  const photoHtml = r.photo
+    ? `<div class="detail-photo"><img src="${r.photo}" alt="${r.name}"></div>`
+    : `<div class="detail-photo" style="font-size:64px">${getVegEmoji(r.name)}</div>`;
+
+  // Find same veg records for comparison
+  const sameVeg = records.filter(x => x.name === r.name && x.id !== r.id);
+  const minPrice = sameVeg.length ? Math.min(...sameVeg.map(x => parseFloat(x.price))) : null;
+  const compareNote = minPrice !== null
+    ? (parseFloat(r.price) <= minPrice
+        ? `<span style="color:var(--accent)">✅ 当前最低价</span>`
+        : `<span style="color:var(--warn)">比最低价高 ¥${(parseFloat(r.price)-minPrice).toFixed(1)}</span>`)
+    : '';
+
+  document.getElementById('detailContent').innerHTML = `
+    ${photoHtml}
+    <div class="detail-body">
+      <div class="detail-name">${r.name}</div>
+      <div class="detail-price-big">¥${parseFloat(r.price).toFixed(2)} <span>元/${r.unit}</span></div>
+      ${compareNote ? `<div style="margin-bottom:12px;font-size:13px">${compareNote}</div>` : ''}
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-item-label">📍 地点</div>
+          <div class="detail-item-val">${r.location}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-label">📅 日期</div>
+          <div class="detail-item-val">${r.date}</div>
+        </div>
+        ${r.note ? `<div class="detail-item" style="grid-column:1/-1">
+          <div class="detail-item-label">📝 备注</div>
+          <div class="detail-item-val">${r.note}</div>
+        </div>` : ''}
+      </div>
+      <div class="detail-actions">
+        <button class="detail-btn" onclick="editRecord('${r.id}')">✏️ 编辑</button>
+        <button class="detail-btn danger" onclick="deleteRecord('${r.id}')">🗑️ 删除</button>
+      </div>
+    </div>
+  `;
+  openModal('detailModal');
+}
+
+function editRecord(id) {
+  const r = records.find(r => r.id === id);
+  if (!r) return;
+  closeModal('detailModal');
+  setTimeout(() => {
+    editingId = id;
+    document.getElementById('vegName').value = r.name;
+    document.getElementById('vegPrice').value = r.price;
+    document.getElementById('vegUnit').value = r.unit;
+    document.getElementById('vegLocation').value = r.location;
+    document.getElementById('vegDate').value = r.date;
+    document.getElementById('vegNote').value = r.note || '';
+    if (r.photo) {
+      const area = document.getElementById('photoUploadArea');
+      let img = area.querySelector('img.photo-preview');
+      if (!img) {
+        img = document.createElement('img');
+        img.className = 'photo-preview';
+        area.appendChild(img);
+      }
+      img.src = r.photo;
+      area.dataset.photo = r.photo;
+    }
+    document.querySelector('#addModal .modal-title').textContent = '✏️ 编辑菜价记录';
+    openModal('addModal');
+  }, 300);
+}
+
+// ── Modal ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e, id) {
+  if (e.target === e.currentTarget) closeModal(id);
+}
+function openAddModal() {
+  resetForm();
+  editingId = null;
+  document.querySelector('#addModal .modal-title').textContent = '📝 新增菜价记录';
+  openModal('addModal');
+}
+function resetForm() {
+  document.getElementById('vegName').value = '';
+  document.getElementById('vegPrice').value = '';
+  document.getElementById('vegLocation').value = '';
+  document.getElementById('vegNote').value = '';
+  document.getElementById('vegDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('vegUnit').value = '斤';
+  const area = document.getElementById('photoUploadArea');
+  const img = area.querySelector('img.photo-preview');
+  if (img) img.remove();
+  area.querySelector('.photo-upload-icon').style.display = '';
+  area.querySelector('.photo-upload-text').style.display = '';
+  area.querySelector('.photo-upload-sub').style.display = '';
+  delete area.dataset.photo;
+  document.getElementById('ocrResult').classList.remove('show');
+  document.getElementById('photoInput').value = '';
+}
+
+// ── Tabs ──
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+}
+
+// ── Sort ──
+function toggleSort() {
+  sortDesc = !sortDesc;
+  const btn = document.getElementById('sortBtn');
+  btn.classList.toggle('active', !sortDesc);
+  renderAll();
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── Demo Data ──
+function loadDemoData() {
+  if (records.length > 0) return;
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  records = [
+    { id: '1', name: '西红柿', price: '3.5', unit: '斤', location: '家乐福', date: today, note: '新鲜', photo: null, createdAt: new Date().toISOString() },
+    { id: '2', name: '西红柿', price: '2.8', unit: '斤', location: '菜市场', date: today, note: '', photo: null, createdAt: new Date().toISOString() },
+    { id: '3', name: '土豆', price: '1.5', unit: '斤', location: '菜市场', date: today, note: '', photo: null, createdAt: new Date().toISOString() },
+    { id: '4', name: '白菜', price: '0.8', unit: '斤', location: '盒马', date: yesterday, note: '有机', photo: null, createdAt: new Date().toISOString() },
+    { id: '5', name: '西红柿', price: '4.0', unit: '斤', location: '盒马', date: yesterday, note: '有机', photo: null, createdAt: new Date().toISOString() },
+  ];
+  localStorage.setItem('vegRecords', JSON.stringify(records));
+}
+
+// ── Start ──
+loadDemoData();
+init();
+</script>
+</body>
+</html>
